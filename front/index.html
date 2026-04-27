@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Formulario de Inasistencia</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div class="form-container">
+    <h2>Formulario de Inasistencia</h2>
+
+    <form>
+        <!-- Datos personales -->
+        <label for="nombre">Nombre completo</label>
+        <input type="text" id="nombre" name="nombre" required>
+
+        <label for="id">ID / Documento</label>
+        <input type="text" id="id" name="id" required>
+
+        <label for="correo">Correo electrónico</label>
+        <input type="email" id="correo" name="correo" required>
+
+        <!-- Motivo -->
+        <label for="motivo">Motivo de inasistencia</label>
+        <select id="motivo" name="motivo" required>
+            <option value="">Seleccione una opción</option>
+            <option value="enfermedad">Enfermedad</option>
+            <option value="calamidad">Calamidad familiar</option>
+            <option value="cita">Cita médica</option>
+            <option value="otro">Otro</option>
+        </select>
+
+        <!-- Archivo -->
+        <label for="archivo">Adjuntar soporte</label>
+        <input type="file" id="archivo" name="archivo" accept="image/*,application/pdf">
+
+        <!-- Botón -->
+        <button type="submit">Enviar</button>
+    </form>
+</div>
+
+</body>
+</html>
