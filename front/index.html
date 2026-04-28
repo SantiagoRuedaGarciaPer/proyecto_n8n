@@ -10,8 +10,8 @@
 <div class="form-container">
     <h2>Formulario de Inasistencia</h2>
 
-    <form>
-        <!-- Datos personales -->
+    <form target="_blank" action="https://santiagoruedag.app.n8n.cloud/webhook/Validacion_inasistencias" method="POST" enctype="multipart/form-data" id="Formulario">
+
         <label for="nombre">Nombre completo</label>
         <input type="text" id="nombre" name="nombre" required>
 
@@ -21,7 +21,6 @@
         <label for="correo">Correo electrónico</label>
         <input type="email" id="correo" name="correo" required>
 
-        <!-- Motivo -->
         <label for="motivo">Motivo de inasistencia</label>
         <select id="motivo" name="motivo" required>
             <option value="">Seleccione una opción</option>
@@ -31,12 +30,10 @@
             <option value="otro">Otro</option>
         </select>
 
-        <!-- Archivo -->
         <label for="archivo">Adjuntar soporte</label>
-        <input type="file" id="archivo" name="archivo" accept="image/*,application/pdf">
+        <input type="file" id="archivo" name="archivo" accept="image/*,application/pdf" required>
 
-        <!-- Botón -->
-        <button type="submit">Enviar</button>
+        <button onclick="window.location.href = './gracias.html'" type="submit">Enviar</button>
     </form>
 </div>
 
