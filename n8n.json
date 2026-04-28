@@ -1,0 +1,921 @@
+{
+  "name": "Proyecto",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "Validacion_inasistencias",
+        "options": {
+          "binaryPropertyName": "image.png"
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        -112,
+        0
+      ],
+      "id": "52471b50-66d6-497a-9ddf-59623c493d43",
+      "name": "Webhook",
+      "webhookId": "d92f419c-3631-4f55-ba72-ed3557a4754a"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a school teacher responsible for evaluating whether a student's absence justification is valid.\n\nYou will receive an image containing the justification (base64 file: {{ $json.image }}) and the type of justification the student is asking ({{ $('Webhook').item.json.body.motivo }})\n\nYour task is to:\n1. Analyze the justification shown in the image.\n2. Decide if it is valid or not based on common school standards (e.g., medical reasons, official documents, emergencies).\n\nYou must respond using ONLY one of the following statuses:\n- \"approved\" (valid justification)\n- \"rejected\" (invalid or insufficient justification)\n- \"pending\" (unclear or not enough information)\n\nAdditionally:\n- Provide a brief explanation of your decision.\n- Indicate how trustworthy your evaluation is (low, medium, high).\n\nFormat your response as:\nStatus: <approved/rejected/pending>\nExplanation: <short explanation>\nTrustworthiness: <low/medium/high>\nFinal Verdict: <one sentence conclusion>",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": []
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        544,
+        0
+      ],
+      "id": "c76e693c-d899-4e4f-8dd0-c07d0d8e2537",
+      "name": "Basic LLM Chain",
+      "retryOnFail": true,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        544,
+        208
+      ],
+      "id": "90c83f78-626d-497e-a515-1e027bb2f3c8",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "dIT6GZ6re4OzTpVs",
+          "name": "OpenRouter account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "binaryPropertyName": "image.png0",
+        "destinationKey": "image",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        128,
+        0
+      ],
+      "id": "73cc7055-cc28-44df-b9a3-dfd755e3ea0b",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"Estatus\":\"aproved\",\n  \"Explanaition\":\"The image appears to contain a medical prescription or note, but it is not clearly legible or verifiable as an official school absence justification (e.g., lacks clear patient name, date, doctor’s signature, or school-required format).\",\n  \"Trustworthiness\":\"Medium\",\n  \"Final_veredict\":\"The justification cannot be clearly confirmed as valid or invalid without better readability and verification\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        688,
+        208
+      ],
+      "id": "6cfb6cd6-c8da-43e9-9c27-cdaa7313b795",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM",
+          "mode": "list",
+          "cachedResultName": "proyecto",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_solicitud": "={{ $json.id_solicitud +1}}",
+            "Nombre": "={{ $('Webhook').item.json.body.nombre }}",
+            "correo": "={{ $('Webhook').item.json.body.correo }}",
+            "Tipo justificación": "={{ $('Webhook').item.json.body.motivo }}",
+            "Documento": "={{ $('Webhook').item.json.body.id }}",
+            "Resultado del analizis": "={{ $('Basic LLM Chain').item.json.output.Final_veredict }}",
+            "Estado": "={{ $('Basic LLM Chain').item.json.output.Estatus }}",
+            "Nivel de cofianza": "={{ $('Basic LLM Chain').item.json.output.Trustworthiness }}",
+            "Analizis": "={{ $('Basic LLM Chain').item.json.output.Explanaition }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id_solicitud",
+              "displayName": "id_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Documento",
+              "displayName": "Documento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "correo",
+              "displayName": "correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tipo justificación",
+              "displayName": "Tipo justificación",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Analizis",
+              "displayName": "Analizis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Resultado del analizis",
+              "displayName": "Resultado del analizis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nivel de cofianza",
+              "displayName": "Nivel de cofianza",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1488,
+        -112
+      ],
+      "id": "3e47564a-ee8f-4a89-a0a5-172121e7dad7",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8jXcLvgBLWf95WOe",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM",
+          "mode": "list",
+          "cachedResultName": "proyecto",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        -112
+      ],
+      "id": "1eb6e8d9-d50f-4b29-9b99-110396ce937b",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8jXcLvgBLWf95WOe",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items=  $input.all();\nconst last = items[ items.length -1]\n\nreturn last"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1296,
+        -112
+      ],
+      "id": "a2048df8-2fc4-487a-9e09-a4a9079e0597",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "updates": [
+          "message"
+        ],
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegramTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -96,
+        -336
+      ],
+      "id": "273f5e96-910f-4ec3-9a9b-d46ff3a0b58e",
+      "name": "Telegram Trigger",
+      "webhookId": "1cfaaba9-e978-4e1d-a688-177e307037ae",
+      "credentials": {
+        "telegramApi": {
+          "id": "gFlkVJIVYVBZV5KU",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 9
+      },
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [
+        336,
+        0
+      ],
+      "id": "e5037a21-b673-4464-9d2f-197c255c3a7c",
+      "name": "Wait",
+      "webhookId": "6a4d0ce0-908a-421a-9df2-f34e80649acc"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM",
+          "mode": "list",
+          "cachedResultName": "proyecto",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        912,
+        112
+      ],
+      "id": "cfd52e43-fdc6-4dde-96d9-7307fa1fdcff",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8jXcLvgBLWf95WOe",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items=  $input.all();\nconst last = items[ items.length -1]\n\nreturn last"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1088,
+        112
+      ],
+      "id": "f6538494-68a3-4256-af65-584a0e8471c0",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM",
+          "mode": "list",
+          "cachedResultName": "proyecto",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_solicitud": "={{ $json.id_solicitud +1}}",
+            "Nombre": "={{ $('Webhook').item.json.body.nombre }}",
+            "correo": "={{ $('Webhook').item.json.body.correo }}",
+            "Tipo justificación": "={{ $('Webhook').item.json.body.motivo }}",
+            "Documento": "={{ $('Webhook').item.json.body.id }}",
+            "Resultado del analizis": "=datos insufientes",
+            "Estado": "=Pending",
+            "Nivel de cofianza": "=bajo",
+            "Analizis": "=No hay datos sufientes para realizar una analizis. Se requiere revicion de un humano"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id_solicitud",
+              "displayName": "id_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Documento",
+              "displayName": "Documento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "correo",
+              "displayName": "correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tipo justificación",
+              "displayName": "Tipo justificación",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Analizis",
+              "displayName": "Analizis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Resultado del analizis",
+              "displayName": "Resultado del analizis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nivel de cofianza",
+              "displayName": "Nivel de cofianza",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1296,
+        112
+      ],
+      "id": "f5a7ed10-7c64-4b7b-9fa1-de697cf0db1e",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8jXcLvgBLWf95WOe",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "=Hi! I'm Tetto, the IA agent of ABC academy and I am here to help you in your process. What can I help you with today?\n\n1. Get informacion about an absent. Please send a message like this: 1. [id]\n2. Nothing, this chat will end",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        -336
+      ],
+      "id": "1c15274a-3ce7-4950-ba95-35c9ead79ae3",
+      "name": "Send a text message",
+      "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
+      "credentials": {
+        "telegramApi": {
+          "id": "gFlkVJIVYVBZV5KU",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "1",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    },
+                    "id": "488c882a-03dc-464d-8381-82e93790043c"
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "0c0c03ee-dfc1-4374-8b1e-c02aa2c749eb",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "h",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "d3f27b22-5e7a-401d-8ff5-1cb7f363ee6d",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "Bye",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "61fc640d-45ca-4c31-b826-c7a10c00d0ca",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "",
+                    "operator": {
+                      "type": "string",
+                      "operation": "exists",
+                      "singleValue": true
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        96,
+        -352
+      ],
+      "id": "5ef46de7-a542-4b4e-87d7-9194be60eb48",
+      "name": "Switch"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM",
+          "mode": "list",
+          "cachedResultName": "proyecto",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "id_solicitud",
+              "lookupValue": "={{ $json.message.text.substring(2, this.length) }}"
+            }
+          ]
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        384,
+        -496
+      ],
+      "id": "8cfc965a-b6ce-4309-bcc9-82ad5810ec43",
+      "name": "Get row(s) in sheet2",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "8jXcLvgBLWf95WOe",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $json.message.chat.id }}",
+        "text": "=Good bye!\nTetto wish you a good day!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        -176
+      ],
+      "id": "f1a1d920-181a-44da-91b1-954825eb995c",
+      "name": "Send a text message1",
+      "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
+      "credentials": {
+        "telegramApi": {
+          "id": "gFlkVJIVYVBZV5KU",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Your absent is {{ $json.Estado }}, because of {{ $json['Resultado del analizis'] }}.\nThe full analizis is this(could be in blanck): {{ $json.Analizis }}\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        576,
+        -496
+      ],
+      "id": "00633cc2-4bfd-4df5-9a51-c325d8a5429a",
+      "name": "Send a text message2",
+      "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
+      "credentials": {
+        "telegramApi": {
+          "id": "gFlkVJIVYVBZV5KU",
+          "name": "Telegram account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telegram Trigger": {
+      "main": [
+        [
+          {
+            "node": "Switch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a text message": {
+      "main": [
+        []
+      ]
+    },
+    "Switch": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet2": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        []
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "5951c305-c171-4f8b-abc8-118d848b6ee6",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "d72a24de2d4f56d67c34600819f0c9061fdcf5b9d2676563083b21e4831d1bcc"
+  },
+  "id": "CEGgsFxUbQ7JU6ww",
+  "tags": []
+}
