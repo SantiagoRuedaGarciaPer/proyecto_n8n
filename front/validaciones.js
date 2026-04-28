@@ -1,0 +1,13 @@
+const nombre = document.getElementById("nombre").value;
+const id = document.getElementById("id").value;
+const email = document.getElementById("correo").value;
+const motivo = document.getElementById("motivo").value;
+const boton = document.getElementById("submit");
+const form = document.getElementById("Formulario");
+
+form.addEventListener('submit', ()=>{
+    form.attributes.target="_blank";
+    window.location.href="./gracias.html"
+    })
+
+
