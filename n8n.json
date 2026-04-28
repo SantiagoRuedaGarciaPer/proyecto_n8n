@@ -665,12 +665,14 @@
       ],
       "id": "8cfc965a-b6ce-4309-bcc9-82ad5810ec43",
       "name": "Get row(s) in sheet2",
+      "alwaysOutputData": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "8jXcLvgBLWf95WOe",
           "name": "Google Sheets OAuth2 API"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     },
     {
       "parameters": {
@@ -703,11 +705,67 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        576,
-        -496
+        800,
+        -576
       ],
       "id": "00633cc2-4bfd-4df5-9a51-c325d8a5429a",
       "name": "Send a text message2",
+      "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
+      "credentials": {
+        "telegramApi": {
+          "id": "gFlkVJIVYVBZV5KU",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9519c9c0-5adf-48c2-9508-501f5f05a2ae",
+              "leftValue": "={{ $json.id_solicitud }}",
+              "rightValue": null,
+              "operator": {
+                "type": "number",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        592,
+        -496
+      ],
+      "id": "d5b5564b-db04-4d12-8b20-ea25eb9ef96c",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "chatId": "={{ $('Telegram Trigger').item.json.message.chat.id }}",
+        "text": "=Im sorry! I could not find your absence\nAre you sure you wrote it right?\nI'll be waiting for you!\n",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        800,
+        -416
+      ],
+      "id": "636f0a43-4c2f-41e8-9d24-3abe4d002a23",
+      "name": "Send a text message3",
       "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
       "credentials": {
         "telegramApi": {
@@ -893,7 +951,7 @@
       "main": [
         [
           {
-            "node": "Send a text message2",
+            "node": "If",
             "type": "main",
             "index": 0
           }
@@ -904,6 +962,24 @@
       "main": [
         []
       ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send a text message2",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -911,7 +987,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "5951c305-c171-4f8b-abc8-118d848b6ee6",
+  "versionId": "ccf9ad1c-01bc-46e9-a3ef-7af539a81ead",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d72a24de2d4f56d67c34600819f0c9061fdcf5b9d2676563083b21e4831d1bcc"
