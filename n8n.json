@@ -288,7 +288,7 @@
       "typeVersion": 1.2,
       "position": [
         -96,
-        -336
+        -304
       ],
       "id": "273f5e96-910f-4ec3-9a9b-d46ff3a0b58e",
       "name": "Telegram Trigger",
@@ -511,7 +511,7 @@
       "typeVersion": 1.2,
       "position": [
         384,
-        -336
+        -320
       ],
       "id": "1c15274a-3ce7-4950-ba95-35c9ead79ae3",
       "name": "Send a text message",
@@ -561,7 +561,29 @@
                   {
                     "id": "0c0c03ee-dfc1-4374-8b1e-c02aa2c749eb",
                     "leftValue": "={{ $json.message.text }}",
-                    "rightValue": "h",
+                    "rightValue": "hi",
+                    "operator": {
+                      "type": "string",
+                      "operation": "contains"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              }
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": false,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "561c668a-b0bd-405e-96fa-2c9d70792721",
+                    "leftValue": "={{ $json.message.text }}",
+                    "rightValue": "hello",
                     "operator": {
                       "type": "string",
                       "operation": "contains"
@@ -935,6 +957,13 @@
         ],
         [
           {
+            "node": "Send a text message",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Send a text message1",
             "type": "main",
             "index": 0
@@ -989,7 +1018,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "279ef550-8b6f-4189-8f8b-4ca56a04be85",
+  "versionId": "62824488-3324-4f68-9534-f4ec660cc9e3",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "d72a24de2d4f56d67c34600819f0c9061fdcf5b9d2676563083b21e4831d1bcc"

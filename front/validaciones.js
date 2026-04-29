@@ -6,8 +6,9 @@ const boton = document.getElementById("submit");
 const form = document.getElementById("Formulario");
 
 form.addEventListener('submit', ()=>{
-    form.attributes.target="_blank";
-    window.location.href="./gracias.html"
-    })
+    setTimeout(function() {
+        window.location.href = 'pagina-de-agradecimiento.html';
+    }, 5000);
+})
 
 
