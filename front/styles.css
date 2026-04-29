@@ -32,10 +32,44 @@ input, select {
     margin-top: 5px;
     border-radius: 5px;
     border: 1px solid #ccc;
+    transition: border-color 0.3s ease;
+}
+
+input:hover, select:hover{
+    border-color: rgb(53, 53, 255);
 }
 
 input[type="file"] {
     border: none;
+    display: none;
+}
+
+.archivo_label{
+    align-self: center;
+    justify-self: center;
+    text-align: center;
+    margin: 10px;
+    width: 30vh;
+    height: 15vh;
+    background-color: #f4f6f9;
+    padding: 10px;
+    transition: background-color 0.3s ease,  border-color 0.3s ease;
+}
+
+.archivo_label:hover{
+    background-color: #bebebe;
+    border-color: rgb(53, 53, 255);
+
+
+}
+
+.archivo_label p{
+    margin-top: 10px;
+}
+
+.img{
+    width: 35%;
+    height: 70%;
 }
 
 button {
