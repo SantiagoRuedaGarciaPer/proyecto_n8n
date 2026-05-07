@@ -10,19 +10,19 @@
 <div class="form-container">
     <h2>Formulario de Inasistencia</h2>
     <!--- para pruebas ingresa la url con webhook-test-->
-    <form target="_blank" action="https://santiagoruedag.app.n8n.cloud/webhook/Validacion_inasistencias" method="POST" enctype="multipart/form-data" id="Formulario">
+    <form target="_blank" action="https://kamesappo.app.n8n.cloud/webhook-test/enviar_soporte" method="POST" enctype="multipart/form-data" id="Formulario">
 
         <label for="nombre">Nombre completo</label>
-        <input type="text" id="nombre" name="nombre" required>
+        <input type="text" id="nombre" name="nombre">
 
         <label for="id">ID / Documento</label>
-        <input type="text" id="id" name="id" required>
+        <input type="text" id="id" name="id">
 
         <label for="correo">Correo electrónico</label>
-        <input type="email" id="correo" name="correo" required>
+        <input type="email" id="correo" name="correo">
 
         <label for="motivo">Motivo de inasistencia</label>
-        <select id="motivo" name="motivo" required>
+        <select id="motivo" name="motivo">
             <option value="">Seleccione una opción</option>
             <option value="enfermedad">Enfermedad</option>
             <option value="calamidad">Calamidad familiar</option>
@@ -30,12 +30,15 @@
             <option value="otro">Otro</option>
         </select>
 
+        <label for="textarea">Justificacion</label>
+        <input type="text" name="textarea" id="textarea" placeholder="Ingrese una breve explicacion del motivo de inasistencia">
+
         <h4>Adjuntar Soporte</h4>
         <label for="archivo" class="archivo_label">
             <p>Subir archivo</p>
             <img class="img" src="./assets/pngegg.png" alt="">
         </label>
-        <input type="file" id="archivo" name="archivo" accept="image/*,application/pdf" required>
+        <input type="file" id="archivo" name="archivo" accept="image/*,application/pdf">
 
         <button id="submit">Enviar</button>
     </form>

@@ -7,7 +7,7 @@ const form = document.getElementById("Formulario");
 
 form.addEventListener('submit', ()=>{
     setTimeout(function() {
-        window.location.href = 'pagina-de-agradecimiento.html';
+        window.location.href = 'gracias.html';
     }, 5000);
 })
 
