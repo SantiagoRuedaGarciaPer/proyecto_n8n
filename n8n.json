@@ -1,10 +1,10 @@
 {
-  "name": "Proyecto",
+  "name": "My workflow",
   "nodes": [
     {
       "parameters": {
         "httpMethod": "POST",
-        "path": "Validacion_inasistencias",
+        "path": "enviar_soporte",
         "options": {
           "binaryPropertyName": "image.png"
         }
@@ -12,17 +12,18 @@
       "type": "n8n-nodes-base.webhook",
       "typeVersion": 2.1,
       "position": [
-        -112,
-        0
+        -800,
+        852
       ],
-      "id": "52471b50-66d6-497a-9ddf-59623c493d43",
+      "id": "8b8aefb6-afc1-4c35-b8ab-a2838fbd42df",
       "name": "Webhook",
-      "webhookId": "d92f419c-3631-4f55-ba72-ed3557a4754a"
+      "webhookId": "d92f419c-3631-4f55-ba72-ed3557a4754a",
+      "alwaysOutputData": true
     },
     {
       "parameters": {
         "promptType": "define",
-        "text": "=You are a school teacher responsible for evaluating whether a student's absence justification is valid.\n\nYou will receive an image containing the justification (base64 file: {{ $json.image }}) and the type of justification the student is asking ({{ $('Webhook').item.json.body.motivo }})\n\nYour task is to:\n1. Analyze the justification shown in the image.\n2. Decide if it is valid or not based on common school standards (e.g., medical reasons, official documents, emergencies).\n\nYou must respond using ONLY one of the following statuses:\n- \"approved\" (valid justification)\n- \"rejected\" (invalid or insufficient justification)\n- \"pending\" (unclear or not enough information)\n\nAdditionally:\n- Provide a brief explanation of your decision.\n- Indicate how trustworthy your evaluation is (low, medium, high).\n\nFormat your response as:\nStatus: <approved/rejected/pending>\nExplanation: <short explanation>\nTrustworthiness: <low/medium/high>\nFinal Verdict: <one sentence conclusion>",
+        "text": "=You are a school teacher responsible for evaluating whether a student's absence justification is valid.\n\nYou will receive an image containing the justification (base64 file: {{ $json.image }}) and a text detailing the inasistence motive(text provided by student: {{ $('Webhook').item.json.body.textarea }}) and the type of justification the student is asking ({{ $('Webhook').item.json.body.motivo }})\n\nYour task is to:\n1. Analyze the justification shown in the image.\n2. Decide if it is valid or not based on common school standards (e.g., medical reasons, official documents, emergencies).\n3. give priority based on the text given by the student. For example: If the reason contains keywords such as: \"hospital\", \"emergency\", \"surgery\": HIGH priority\nIf it contains: \"doctor\", \"health\": MEDIUM priority\nOther cases → LOW priority\n4. based on the priority, take more into account the description given by the student than the image given, especially if it contains surgery\n\nYou must respond using ONLY one of the following statuses:\n- \"approved\" (valid justification)\n- \"rejected\" (invalid or insufficient justification)\n- \"pending\" (unclear or not enough information)\n\nAdditionally:\n- Provide a brief explanation of your decision.\n- Indicate how trustworthy your evaluation is (low, medium, high).\n\nFormat your response as:\nStatus: <approved/rejected/pending>\nExplanation: <short explanation>\nTrustworthiness: <low/medium/high>\nFinal Verdict: <one sentence conclusion>\nPriority: <high, medium, low>",
         "hasOutputParser": true,
         "messages": {
           "messageValues": []
@@ -32,12 +33,12 @@
       "type": "@n8n/n8n-nodes-langchain.chainLlm",
       "typeVersion": 1.9,
       "position": [
-        544,
-        0
+        320,
+        696
       ],
-      "id": "c76e693c-d899-4e4f-8dd0-c07d0d8e2537",
+      "id": "d38f91d0-a3e3-435a-9e87-d0fe92a2d4a5",
       "name": "Basic LLM Chain",
-      "retryOnFail": true,
+      "retryOnFail": false,
       "waitBetweenTries": 5000,
       "onError": "continueErrorOutput"
     },
@@ -49,45 +50,29 @@
       "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
       "typeVersion": 1,
       "position": [
-        544,
-        208
+        328,
+        920
       ],
-      "id": "90c83f78-626d-497e-a515-1e027bb2f3c8",
+      "id": "33a4643c-a59c-4694-bbb3-433069e1d7f5",
       "name": "OpenRouter Chat Model",
       "credentials": {
         "openRouterApi": {
-          "id": "dIT6GZ6re4OzTpVs",
-          "name": "OpenRouter account 2"
+          "id": "UaYQM80yxUC5dGkU",
+          "name": "OpenRouter account"
         }
       }
     },
     {
       "parameters": {
-        "operation": "binaryToPropery",
-        "binaryPropertyName": "image.png0",
-        "destinationKey": "image",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.extractFromFile",
-      "typeVersion": 1.1,
-      "position": [
-        128,
-        0
-      ],
-      "id": "73cc7055-cc28-44df-b9a3-dfd755e3ea0b",
-      "name": "Extract from File"
-    },
-    {
-      "parameters": {
-        "jsonSchemaExample": "{\n  \"Estatus\":\"aproved\",\n  \"Explanaition\":\"The image appears to contain a medical prescription or note, but it is not clearly legible or verifiable as an official school absence justification (e.g., lacks clear patient name, date, doctor’s signature, or school-required format).\",\n  \"Trustworthiness\":\"Medium\",\n  \"Final_veredict\":\"The justification cannot be clearly confirmed as valid or invalid without better readability and verification\"\n}"
+        "jsonSchemaExample": "{\n  \"Estatus\":\"aproved\",\n  \"Explanaition\":\"The image appears to contain a medical prescription or note, but it is not clearly legible or verifiable as an official school absence justification (e.g., lacks clear patient name, date, doctor’s signature, or school-required format).\",\n  \"Trustworthiness\":\"Medium\",\n  \"Final_veredict\":\"The justification cannot be clearly confirmed as valid or invalid without better readability and verification\",\n  \"Priority\":\"Hight\"\n}"
       },
       "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
       "typeVersion": 1.3,
       "position": [
-        688,
-        208
+        456,
+        920
       ],
-      "id": "6cfb6cd6-c8da-43e9-9c27-cdaa7313b795",
+      "id": "617a6073-d9cd-4ac0-a0ac-f5c3ae3b1536",
       "name": "Structured Output Parser"
     },
     {
@@ -112,13 +97,14 @@
           "value": {
             "id_solicitud": "={{ $json.id_solicitud +1}}",
             "Nombre": "={{ $('Webhook').item.json.body.nombre }}",
-            "correo": "={{ $('Webhook').item.json.body.correo }}",
+            "correo": "={{ $('Edit Fields').item.json.corre_min }}",
             "Tipo justificación": "={{ $('Webhook').item.json.body.motivo }}",
             "Documento": "={{ $('Webhook').item.json.body.id }}",
             "Resultado del analizis": "={{ $('Basic LLM Chain').item.json.output.Final_veredict }}",
             "Estado": "={{ $('Basic LLM Chain').item.json.output.Estatus }}",
             "Nivel de cofianza": "={{ $('Basic LLM Chain').item.json.output.Trustworthiness }}",
-            "Analizis": "={{ $('Basic LLM Chain').item.json.output.Explanaition }}"
+            "Analizis": "={{ $('Basic LLM Chain').item.json.output.Explanaition }}",
+            "Prioridad": "={{ $('Basic LLM Chain').item.json.output.Priority }}"
           },
           "matchingColumns": [],
           "schema": [
@@ -204,24 +190,40 @@
               "display": true,
               "type": "string",
               "canBeUsedToMatch": true
+            },
+            {
+              "id": "Prioridad",
+              "displayName": "Prioridad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
             }
           ],
           "attemptToConvertTypes": false,
           "convertFieldsToString": false
         },
-        "options": {}
+        "options": {
+          "locationDefine": {
+            "values": {
+              "headerRow": "="
+            }
+          }
+        }
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1488,
-        -112
+        1120,
+        800
       ],
-      "id": "3e47564a-ee8f-4a89-a0a5-172121e7dad7",
+      "id": "1de15ad5-5642-4792-a001-f56492c8ca27",
       "name": "Append row in sheet",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "8jXcLvgBLWf95WOe",
+          "id": "ZgxYlaMEdOWcV2p0",
           "name": "Google Sheets OAuth2 API"
         }
       }
@@ -242,24 +244,21 @@
           "cachedResultName": "Hoja 1",
           "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
         },
-        "filtersUI": {
-          "values": []
-        },
         "options": {
-          "returnFirstMatch": true
+          "returnFirstMatch": false
         }
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1120,
-        -112
+        672,
+        800
       ],
-      "id": "1eb6e8d9-d50f-4b29-9b99-110396ce937b",
+      "id": "1b54a56a-75a3-4848-a513-9bc884b0ff7f",
       "name": "Get row(s) in sheet",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "8jXcLvgBLWf95WOe",
+          "id": "ZgxYlaMEdOWcV2p0",
           "name": "Google Sheets OAuth2 API"
         }
       }
@@ -271,10 +270,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1296,
-        -112
+        896,
+        800
       ],
-      "id": "a2048df8-2fc4-487a-9e09-a4a9079e0597",
+      "id": "45676731-693f-4b0d-93c3-a3de52bf2f30",
       "name": "Code in JavaScript"
     },
     {
@@ -287,32 +286,18 @@
       "type": "n8n-nodes-base.telegramTrigger",
       "typeVersion": 1.2,
       "position": [
-        -96,
-        -304
+        -800,
+        192
       ],
-      "id": "273f5e96-910f-4ec3-9a9b-d46ff3a0b58e",
+      "id": "04d19038-859f-44db-b0ec-f0a589d36b5f",
       "name": "Telegram Trigger",
       "webhookId": "1cfaaba9-e978-4e1d-a688-177e307037ae",
       "credentials": {
         "telegramApi": {
-          "id": "gFlkVJIVYVBZV5KU",
+          "id": "0zhvcThyI8IJoffe",
           "name": "Telegram account"
         }
       }
-    },
-    {
-      "parameters": {
-        "amount": 9
-      },
-      "type": "n8n-nodes-base.wait",
-      "typeVersion": 1.1,
-      "position": [
-        336,
-        0
-      ],
-      "id": "e5037a21-b673-4464-9d2f-197c255c3a7c",
-      "name": "Wait",
-      "webhookId": "6a4d0ce0-908a-421a-9df2-f34e80649acc"
     },
     {
       "parameters": {
@@ -340,14 +325,14 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        912,
-        112
+        672,
+        992
       ],
-      "id": "cfd52e43-fdc6-4dde-96d9-7307fa1fdcff",
+      "id": "1420c283-a724-4629-a51e-a5814a10729e",
       "name": "Get row(s) in sheet1",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "8jXcLvgBLWf95WOe",
+          "id": "ZgxYlaMEdOWcV2p0",
           "name": "Google Sheets OAuth2 API"
         }
       }
@@ -359,10 +344,10 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        1088,
-        112
+        896,
+        992
       ],
-      "id": "f6538494-68a3-4256-af65-584a0e8471c0",
+      "id": "47e9a245-0d81-438d-ab48-548b4acb6ea5",
       "name": "Code in JavaScript1"
     },
     {
@@ -387,7 +372,7 @@
           "value": {
             "id_solicitud": "={{ $json.id_solicitud +1}}",
             "Nombre": "={{ $('Webhook').item.json.body.nombre }}",
-            "correo": "={{ $('Webhook').item.json.body.correo }}",
+            "correo": "={{ $('Edit Fields').item.json.corre_min }}",
             "Tipo justificación": "={{ $('Webhook').item.json.body.motivo }}",
             "Documento": "={{ $('Webhook').item.json.body.id }}",
             "Resultado del analizis": "=datos insufientes",
@@ -489,14 +474,14 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1296,
-        112
+        1120,
+        992
       ],
-      "id": "f5a7ed10-7c64-4b7b-9fa1-de697cf0db1e",
+      "id": "ca77a303-fdf8-4fd3-89f2-842f13c2fa47",
       "name": "Append row in sheet1",
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "8jXcLvgBLWf95WOe",
+          "id": "ZgxYlaMEdOWcV2p0",
           "name": "Google Sheets OAuth2 API"
         }
       }
@@ -504,21 +489,21 @@
     {
       "parameters": {
         "chatId": "={{ $json.message.chat.id }}",
-        "text": "=Hi! I'm Tetto, the IA agent of ABC academy and I am here to help you in your process. What can I help you with today?\n\n1. Get informacion about an absent. Please send a message like this: 1. [id]\n2. Nothing, this chat will end",
+        "text": "=Hi! I'm Tetto, the IA agent of ABC academy and I am here to help you in your process. What can I help you with today?\n\n1. Get informacion about an absent. Please send a message like this: 1 [id]\n2. Nothing, this chat will end",
         "additionalFields": {}
       },
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        384,
-        -320
+        -352,
+        192
       ],
-      "id": "1c15274a-3ce7-4950-ba95-35c9ead79ae3",
+      "id": "ae555547-837a-4d8e-83e4-992a236bed6d",
       "name": "Send a text message",
       "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
       "credentials": {
         "telegramApi": {
-          "id": "gFlkVJIVYVBZV5KU",
+          "id": "0zhvcThyI8IJoffe",
           "name": "Telegram account"
         }
       }
@@ -647,10 +632,10 @@
       "type": "n8n-nodes-base.switch",
       "typeVersion": 3.4,
       "position": [
-        96,
-        -352
+        -576,
+        144
       ],
-      "id": "5ef46de7-a542-4b4e-87d7-9194be60eb48",
+      "id": "ff3dcfad-5d4a-47cb-a354-053ce9e3d133",
       "name": "Switch"
     },
     {
@@ -678,21 +663,21 @@
           ]
         },
         "options": {
-          "returnFirstMatch": true
+          "returnFirstMatch": false
         }
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        384,
-        -496
+        -352,
+        0
       ],
-      "id": "8cfc965a-b6ce-4309-bcc9-82ad5810ec43",
+      "id": "4571906b-bb70-4005-bca6-9215dc6aed1a",
       "name": "Get row(s) in sheet2",
       "alwaysOutputData": true,
       "credentials": {
         "googleSheetsOAuth2Api": {
-          "id": "8jXcLvgBLWf95WOe",
+          "id": "ZgxYlaMEdOWcV2p0",
           "name": "Google Sheets OAuth2 API"
         }
       },
@@ -707,15 +692,15 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        384,
-        -176
+        -352,
+        384
       ],
-      "id": "f1a1d920-181a-44da-91b1-954825eb995c",
+      "id": "023bb478-ce53-4275-9d1d-7b1ddf36a11e",
       "name": "Send a text message1",
       "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
       "credentials": {
         "telegramApi": {
-          "id": "gFlkVJIVYVBZV5KU",
+          "id": "0zhvcThyI8IJoffe",
           "name": "Telegram account"
         }
       }
@@ -729,15 +714,15 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        800,
-        -576
+        96,
+        -96
       ],
-      "id": "00633cc2-4bfd-4df5-9a51-c325d8a5429a",
+      "id": "3620302c-6c75-4103-ab56-6804ad7769c7",
       "name": "Send a text message2",
       "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
       "credentials": {
         "telegramApi": {
-          "id": "gFlkVJIVYVBZV5KU",
+          "id": "0zhvcThyI8IJoffe",
           "name": "Telegram account"
         }
       }
@@ -770,10 +755,10 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.3,
       "position": [
-        592,
-        -496
+        -128,
+        0
       ],
-      "id": "d5b5564b-db04-4d12-8b20-ea25eb9ef96c",
+      "id": "4316a51b-8e8f-4965-bf03-9a263168a665",
       "name": "If"
     },
     {
@@ -785,18 +770,363 @@
       "type": "n8n-nodes-base.telegram",
       "typeVersion": 1.2,
       "position": [
-        800,
-        -416
+        96,
+        96
       ],
-      "id": "636f0a43-4c2f-41e8-9d24-3abe4d002a23",
+      "id": "f058f941-a549-4a68-b0cb-ff7152173ed8",
       "name": "Send a text message3",
       "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
       "credentials": {
         "telegramApi": {
-          "id": "gFlkVJIVYVBZV5KU",
+          "id": "0zhvcThyI8IJoffe",
           "name": "Telegram account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ef63ed18-8c75-45ab-8ba5-0328d12f4792",
+              "leftValue": "={{ $json.output.Priority }}",
+              "rightValue": "High",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        608
+      ],
+      "id": "89094ed2-7869-4545-90f1-2096b91254bc",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "chatId": "=8725657773",
+        "text": "=Hey! a higth priority justification was made by {{ $('Webhook').item.json.body.nombre }} identified with ID {{ $('Webhook').item.json.body.id }} and with the email {{ $('Webhook').item.json.body.correo }}.\nPlease take care of him/her!\nTetto retires!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        896,
+        608
+      ],
+      "id": "cc72d7fd-aaed-45ca-8d3e-fe6fc869f110",
+      "name": "Send a text message4",
+      "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
+      "credentials": {
+        "telegramApi": {
+          "id": "0zhvcThyI8IJoffe",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Edit Fields').item.json.corre_min }}",
+        "subject": "absence justification",
+        "emailType": "text",
+        "message": "=Your absence justification was reviewed by our IA agent Tetto, here is the result:\n{{ $json.Estado }}\n- {{ $json['Resultado del analizis'] }}\n\n- {{ $json.Analizis }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        800
+      ],
+      "id": "8a135cde-9329-4736-aafb-3cffbfa261fc",
+      "name": "Send a message",
+      "webhookId": "74d674d9-9ba9-41d7-b685-89532fa31fd1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ULtJGUuL3R7cll8i",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Edit Fields').item.json.corre_min }}",
+        "subject": "absence justification",
+        "emailType": "text",
+        "message": "=Your absence justification was reviewed by our IA agent Tetto but she wasn't able to determinate wheter or not it was valid, a teacher is going to review it and in 24-hours it will be validated. Note that if it stills pendig in 24 hours your absence will be automatly chaged to aproved",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        992
+      ],
+      "id": "c67151ec-d8b4-425b-ba0a-9cf43a7df1dc",
+      "name": "Send a message1",
+      "webhookId": "74d674d9-9ba9-41d7-b685-89532fa31fd1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ULtJGUuL3R7cll8i",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "=8725657773",
+        "text": "=Humm... I was not able to say if it was valid, you should review it by yoursefl!\nThe id of the request is {{ $('Append row in sheet1').item.json.id_solicitud }}\nThank you for helping me!\nTetto retires",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1568,
+        992
+      ],
+      "id": "d2a7764c-f2f5-451c-8fb9-f8afcf978bb3",
+      "name": "Send a text message5",
+      "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
+      "credentials": {
+        "telegramApi": {
+          "id": "0zhvcThyI8IJoffe",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8cc2f473-ffad-496a-b1ea-50be76a01807",
+              "leftValue": "={{ $('Webhook').item.json.body.nombre }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "ee06a3a5-507c-40e0-ac14-10f8108a01e0",
+              "leftValue": "={{ $('Webhook').item.json.body.id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "9b782e4d-26d6-42ab-9a26-4252e372f063",
+              "leftValue": "={{ $('Webhook').item.json.body.textarea }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "117f1e4e-e93a-4b36-92fc-6125225657ab",
+              "leftValue": "={{ $json.corre_min }}",
+              "rightValue": "@",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "d5b80ad4-aa93-48fc-a1c8-d72cd83d5393",
+              "leftValue": "={{ $json.corre_min }}",
+              "rightValue": ".com",
+              "operator": {
+                "type": "string",
+                "operation": "notContains"
+              }
+            },
+            {
+              "id": "e934b91b-bc8d-4d39-afa9-9ae68398f550",
+              "leftValue": "={{ $json.corre_min }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        -128,
+        852
+      ],
+      "id": "4ac25e6b-06a5-47ce-9721-89203073a460",
+      "name": "If2"
+    },
+    {
+      "parameters": {
+        "chatId": "=8725657773",
+        "text": "=Hey! You tried to send a justificacion without one or more blanck field or send the email without the \"@\" or the \".com\". \nTry again but fill every thing right\nTetto retires!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        96,
+        756
+      ],
+      "id": "ef9304a9-f270-4e0d-a124-6782b595443d",
+      "name": "Send a text message6",
+      "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
+      "credentials": {
+        "telegramApi": {
+          "id": "0zhvcThyI8IJoffe",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "8da3d5c7-542e-409c-8744-fd27afeb5f6b",
+              "leftValue": "={{ $('Extract from File').item.json.image }}",
+              "rightValue": "IVBOR",
+              "operator": {
+                "type": "string",
+                "operation": "notStartsWith"
+              }
+            },
+            {
+              "id": "fb7117ab-ea4e-4ee4-a0a0-3b1be03a56e8",
+              "leftValue": "={{ $('Extract from File').item.json.image }}",
+              "rightValue": "/9j/",
+              "operator": {
+                "type": "string",
+                "operation": "notStartsWith"
+              }
+            },
+            {
+              "id": "db21549a-6871-418a-8f24-c7ffffc681ad",
+              "leftValue": "={{ $('Extract from File').item.json.image }}",
+              "rightValue": "JVBERi",
+              "operator": {
+                "type": "string",
+                "operation": "notStartsWith"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        96,
+        948
+      ],
+      "id": "5560fbb9-f3e9-4f9b-8396-dd761f270904",
+      "name": "If3"
+    },
+    {
+      "parameters": {
+        "chatId": "=8725657773",
+        "text": "=Hey! You uploaded a tipe of image or document I don't support. Remember I only acept png, jpg and pdf. Please take into account that you can't upload a  jpeg, .zip, word documents, or any other image tipe than the ones above.\nTetto retires!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        384,
+        1096
+      ],
+      "id": "0415ade6-809e-47ef-a9e4-0bae7a7a35a3",
+      "name": "Send a text message7",
+      "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
+      "credentials": {
+        "telegramApi": {
+          "id": "0zhvcThyI8IJoffe",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "0be65b68-1281-4e12-adf6-0542f583f08f",
+              "name": "corre_min",
+              "value": "={{ $('Webhook').item.json.body.correo.toLowerCase() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        -352,
+        852
+      ],
+      "id": "6e883731-6942-48f2-9dc7-6465e90bed01",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "operation": "binaryToPropery",
+        "binaryPropertyName": "image.png0",
+        "destinationKey": "image",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        -576,
+        852
+      ],
+      "id": "be285b4e-c9d3-484e-9288-6c13b5374954",
+      "name": "Extract from File"
     }
   ],
   "pinData": {},
@@ -806,6 +1136,29 @@
         [
           {
             "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s) in sheet1",
             "type": "main",
             "index": 0
           }
@@ -823,35 +1176,6 @@
         ]
       ]
     },
-    "Basic LLM Chain": {
-      "main": [
-        [
-          {
-            "node": "Get row(s) in sheet",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Get row(s) in sheet1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Extract from File": {
-      "main": [
-        [
-          {
-            "node": "Wait",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Structured Output Parser": {
       "ai_outputParser": [
         [
@@ -861,11 +1185,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "Append row in sheet": {
-      "main": [
-        []
       ]
     },
     "Get row(s) in sheet": {
@@ -890,11 +1209,11 @@
         ]
       ]
     },
-    "Wait": {
+    "Telegram Trigger": {
       "main": [
         [
           {
-            "node": "Basic LLM Chain",
+            "node": "Switch",
             "type": "main",
             "index": 0
           }
@@ -921,22 +1240,6 @@
             "index": 0
           }
         ]
-      ]
-    },
-    "Telegram Trigger": {
-      "main": [
-        [
-          {
-            "node": "Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send a text message": {
-      "main": [
-        []
       ]
     },
     "Switch": {
@@ -989,11 +1292,6 @@
         ]
       ]
     },
-    "Append row in sheet1": {
-      "main": [
-        []
-      ]
-    },
     "If": {
       "main": [
         [
@@ -1011,6 +1309,113 @@
           }
         ]
       ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message": {
+      "main": [
+        []
+      ]
+    },
+    "If2": {
+      "main": [
+        [
+          {
+            "node": "Send a text message6",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "If3",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If3": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send a text message7",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If2",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -1018,11 +1423,11 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "62824488-3324-4f68-9534-f4ec660cc9e3",
+  "versionId": "b179f77c-7f1f-443b-94e9-4d0b396f0839",
   "meta": {
     "templateCredsSetupCompleted": true,
-    "instanceId": "d72a24de2d4f56d67c34600819f0c9061fdcf5b9d2676563083b21e4831d1bcc"
+    "instanceId": "b34109869cf9401e1ba7fbc11da3b94470712daa9d333c905c95b8f807a25c72"
   },
-  "id": "CEGgsFxUbQ7JU6ww",
+  "id": "1OfkYyJg7hmsxHVg",
   "tags": []
 }
