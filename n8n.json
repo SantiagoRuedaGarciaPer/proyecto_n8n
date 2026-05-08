@@ -13,268 +13,12 @@
       "typeVersion": 2.1,
       "position": [
         -800,
-        852
+        704
       ],
       "id": "8b8aefb6-afc1-4c35-b8ab-a2838fbd42df",
       "name": "Webhook",
       "webhookId": "d92f419c-3631-4f55-ba72-ed3557a4754a",
       "alwaysOutputData": true
-    },
-    {
-      "parameters": {
-        "promptType": "define",
-        "text": "=You are a school teacher responsible for evaluating whether a student's absence justification is valid.\n\nYou will receive an image containing the justification (base64 file: {{ $json.image }}) and a text detailing the inasistence motive(text provided by student: {{ $('Webhook').item.json.body.textarea }}) and the type of justification the student is asking ({{ $('Webhook').item.json.body.motivo }})\n\nYour task is to:\n1. Analyze the justification shown in the image.\n2. Decide if it is valid or not based on common school standards (e.g., medical reasons, official documents, emergencies).\n3. give priority based on the text given by the student. For example: If the reason contains keywords such as: \"hospital\", \"emergency\", \"surgery\": HIGH priority\nIf it contains: \"doctor\", \"health\": MEDIUM priority\nOther cases → LOW priority\n4. based on the priority, take more into account the description given by the student than the image given, especially if it contains surgery\n\nYou must respond using ONLY one of the following statuses:\n- \"approved\" (valid justification)\n- \"rejected\" (invalid or insufficient justification)\n- \"pending\" (unclear or not enough information)\n\nAdditionally:\n- Provide a brief explanation of your decision.\n- Indicate how trustworthy your evaluation is (low, medium, high).\n\nFormat your response as:\nStatus: <approved/rejected/pending>\nExplanation: <short explanation>\nTrustworthiness: <low/medium/high>\nFinal Verdict: <one sentence conclusion>\nPriority: <high, medium, low>",
-        "hasOutputParser": true,
-        "messages": {
-          "messageValues": []
-        },
-        "batching": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.chainLlm",
-      "typeVersion": 1.9,
-      "position": [
-        320,
-        696
-      ],
-      "id": "d38f91d0-a3e3-435a-9e87-d0fe92a2d4a5",
-      "name": "Basic LLM Chain",
-      "retryOnFail": false,
-      "waitBetweenTries": 5000,
-      "onError": "continueErrorOutput"
-    },
-    {
-      "parameters": {
-        "model": "openai/gpt-oss-120b:free",
-        "options": {}
-      },
-      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
-      "typeVersion": 1,
-      "position": [
-        328,
-        920
-      ],
-      "id": "33a4643c-a59c-4694-bbb3-433069e1d7f5",
-      "name": "OpenRouter Chat Model",
-      "credentials": {
-        "openRouterApi": {
-          "id": "UaYQM80yxUC5dGkU",
-          "name": "OpenRouter account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsonSchemaExample": "{\n  \"Estatus\":\"aproved\",\n  \"Explanaition\":\"The image appears to contain a medical prescription or note, but it is not clearly legible or verifiable as an official school absence justification (e.g., lacks clear patient name, date, doctor’s signature, or school-required format).\",\n  \"Trustworthiness\":\"Medium\",\n  \"Final_veredict\":\"The justification cannot be clearly confirmed as valid or invalid without better readability and verification\",\n  \"Priority\":\"Hight\"\n}"
-      },
-      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
-      "typeVersion": 1.3,
-      "position": [
-        456,
-        920
-      ],
-      "id": "617a6073-d9cd-4ac0-a0ac-f5c3ae3b1536",
-      "name": "Structured Output Parser"
-    },
-    {
-      "parameters": {
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "value": "1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM",
-          "mode": "list",
-          "cachedResultName": "proyecto",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Hoja 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "id_solicitud": "={{ $json.id_solicitud +1}}",
-            "Nombre": "={{ $('Webhook').item.json.body.nombre }}",
-            "correo": "={{ $('Edit Fields').item.json.corre_min }}",
-            "Tipo justificación": "={{ $('Webhook').item.json.body.motivo }}",
-            "Documento": "={{ $('Webhook').item.json.body.id }}",
-            "Resultado del analizis": "={{ $('Basic LLM Chain').item.json.output.Final_veredict }}",
-            "Estado": "={{ $('Basic LLM Chain').item.json.output.Estatus }}",
-            "Nivel de cofianza": "={{ $('Basic LLM Chain').item.json.output.Trustworthiness }}",
-            "Analizis": "={{ $('Basic LLM Chain').item.json.output.Explanaition }}",
-            "Prioridad": "={{ $('Basic LLM Chain').item.json.output.Priority }}"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "id_solicitud",
-              "displayName": "id_solicitud",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Nombre",
-              "displayName": "Nombre",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Documento",
-              "displayName": "Documento",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "correo",
-              "displayName": "correo",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Tipo justificación",
-              "displayName": "Tipo justificación",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Analizis",
-              "displayName": "Analizis",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Resultado del analizis",
-              "displayName": "Resultado del analizis",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Nivel de cofianza",
-              "displayName": "Nivel de cofianza",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Estado",
-              "displayName": "Estado",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Prioridad",
-              "displayName": "Prioridad",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {
-          "locationDefine": {
-            "values": {
-              "headerRow": "="
-            }
-          }
-        }
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1120,
-        800
-      ],
-      "id": "1de15ad5-5642-4792-a001-f56492c8ca27",
-      "name": "Append row in sheet",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "ZgxYlaMEdOWcV2p0",
-          "name": "Google Sheets OAuth2 API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM",
-          "mode": "list",
-          "cachedResultName": "proyecto",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Hoja 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
-        },
-        "options": {
-          "returnFirstMatch": false
-        }
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        672,
-        800
-      ],
-      "id": "1b54a56a-75a3-4848-a513-9bc884b0ff7f",
-      "name": "Get row(s) in sheet",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "ZgxYlaMEdOWcV2p0",
-          "name": "Google Sheets OAuth2 API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const items=  $input.all();\nconst last = items[ items.length -1]\n\nreturn last"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        896,
-        800
-      ],
-      "id": "45676731-693f-4b0d-93c3-a3de52bf2f30",
-      "name": "Code in JavaScript"
     },
     {
       "parameters": {
@@ -296,193 +40,6 @@
         "telegramApi": {
           "id": "0zhvcThyI8IJoffe",
           "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "documentId": {
-          "__rl": true,
-          "value": "1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM",
-          "mode": "list",
-          "cachedResultName": "proyecto",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Hoja 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
-        },
-        "filtersUI": {
-          "values": []
-        },
-        "options": {
-          "returnFirstMatch": true
-        }
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        672,
-        992
-      ],
-      "id": "1420c283-a724-4629-a51e-a5814a10729e",
-      "name": "Get row(s) in sheet1",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "ZgxYlaMEdOWcV2p0",
-          "name": "Google Sheets OAuth2 API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "jsCode": "const items=  $input.all();\nconst last = items[ items.length -1]\n\nreturn last"
-      },
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        896,
-        992
-      ],
-      "id": "47e9a245-0d81-438d-ab48-548b4acb6ea5",
-      "name": "Code in JavaScript1"
-    },
-    {
-      "parameters": {
-        "operation": "append",
-        "documentId": {
-          "__rl": true,
-          "value": "1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM",
-          "mode": "list",
-          "cachedResultName": "proyecto",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit?usp=drivesdk"
-        },
-        "sheetName": {
-          "__rl": true,
-          "value": "gid=0",
-          "mode": "list",
-          "cachedResultName": "Hoja 1",
-          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
-        },
-        "columns": {
-          "mappingMode": "defineBelow",
-          "value": {
-            "id_solicitud": "={{ $json.id_solicitud +1}}",
-            "Nombre": "={{ $('Webhook').item.json.body.nombre }}",
-            "correo": "={{ $('Edit Fields').item.json.corre_min }}",
-            "Tipo justificación": "={{ $('Webhook').item.json.body.motivo }}",
-            "Documento": "={{ $('Webhook').item.json.body.id }}",
-            "Resultado del analizis": "=datos insufientes",
-            "Estado": "=Pending",
-            "Nivel de cofianza": "=bajo",
-            "Analizis": "=No hay datos sufientes para realizar una analizis. Se requiere revicion de un humano"
-          },
-          "matchingColumns": [],
-          "schema": [
-            {
-              "id": "id_solicitud",
-              "displayName": "id_solicitud",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Nombre",
-              "displayName": "Nombre",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Documento",
-              "displayName": "Documento",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "correo",
-              "displayName": "correo",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Tipo justificación",
-              "displayName": "Tipo justificación",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Analizis",
-              "displayName": "Analizis",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true,
-              "removed": false
-            },
-            {
-              "id": "Resultado del analizis",
-              "displayName": "Resultado del analizis",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Nivel de cofianza",
-              "displayName": "Nivel de cofianza",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            },
-            {
-              "id": "Estado",
-              "displayName": "Estado",
-              "required": false,
-              "defaultMatch": false,
-              "display": true,
-              "type": "string",
-              "canBeUsedToMatch": true
-            }
-          ],
-          "attemptToConvertTypes": false,
-          "convertFieldsToString": false
-        },
-        "options": {}
-      },
-      "type": "n8n-nodes-base.googleSheets",
-      "typeVersion": 4.7,
-      "position": [
-        1120,
-        992
-      ],
-      "id": "ca77a303-fdf8-4fd3-89f2-842f13c2fa47",
-      "name": "Append row in sheet1",
-      "credentials": {
-        "googleSheetsOAuth2Api": {
-          "id": "ZgxYlaMEdOWcV2p0",
-          "name": "Google Sheets OAuth2 API"
         }
       }
     },
@@ -794,133 +351,6 @@
           },
           "conditions": [
             {
-              "id": "ef63ed18-8c75-45ab-8ba5-0328d12f4792",
-              "leftValue": "={{ $json.output.Priority }}",
-              "rightValue": "High",
-              "operator": {
-                "type": "string",
-                "operation": "equals"
-              }
-            }
-          ],
-          "combinator": "and"
-        },
-        "options": {
-          "ignoreCase": true
-        }
-      },
-      "type": "n8n-nodes-base.if",
-      "typeVersion": 2.3,
-      "position": [
-        672,
-        608
-      ],
-      "id": "89094ed2-7869-4545-90f1-2096b91254bc",
-      "name": "If1"
-    },
-    {
-      "parameters": {
-        "chatId": "=8725657773",
-        "text": "=Hey! a higth priority justification was made by {{ $('Webhook').item.json.body.nombre }} identified with ID {{ $('Webhook').item.json.body.id }} and with the email {{ $('Webhook').item.json.body.correo }}.\nPlease take care of him/her!\nTetto retires!",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        896,
-        608
-      ],
-      "id": "cc72d7fd-aaed-45ca-8d3e-fe6fc869f110",
-      "name": "Send a text message4",
-      "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
-      "credentials": {
-        "telegramApi": {
-          "id": "0zhvcThyI8IJoffe",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "sendTo": "={{ $('Edit Fields').item.json.corre_min }}",
-        "subject": "absence justification",
-        "emailType": "text",
-        "message": "=Your absence justification was reviewed by our IA agent Tetto, here is the result:\n{{ $json.Estado }}\n- {{ $json['Resultado del analizis'] }}\n\n- {{ $json.Analizis }}\n",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.2,
-      "position": [
-        1344,
-        800
-      ],
-      "id": "8a135cde-9329-4736-aafb-3cffbfa261fc",
-      "name": "Send a message",
-      "webhookId": "74d674d9-9ba9-41d7-b685-89532fa31fd1",
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "ULtJGUuL3R7cll8i",
-          "name": "Gmail OAuth2 API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "sendTo": "={{ $('Edit Fields').item.json.corre_min }}",
-        "subject": "absence justification",
-        "emailType": "text",
-        "message": "=Your absence justification was reviewed by our IA agent Tetto but she wasn't able to determinate wheter or not it was valid, a teacher is going to review it and in 24-hours it will be validated. Note that if it stills pendig in 24 hours your absence will be automatly chaged to aproved",
-        "options": {}
-      },
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.2,
-      "position": [
-        1344,
-        992
-      ],
-      "id": "c67151ec-d8b4-425b-ba0a-9cf43a7df1dc",
-      "name": "Send a message1",
-      "webhookId": "74d674d9-9ba9-41d7-b685-89532fa31fd1",
-      "credentials": {
-        "gmailOAuth2": {
-          "id": "ULtJGUuL3R7cll8i",
-          "name": "Gmail OAuth2 API"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "chatId": "=8725657773",
-        "text": "=Humm... I was not able to say if it was valid, you should review it by yoursefl!\nThe id of the request is {{ $('Append row in sheet1').item.json.id_solicitud }}\nThank you for helping me!\nTetto retires",
-        "additionalFields": {}
-      },
-      "type": "n8n-nodes-base.telegram",
-      "typeVersion": 1.2,
-      "position": [
-        1568,
-        992
-      ],
-      "id": "d2a7764c-f2f5-451c-8fb9-f8afcf978bb3",
-      "name": "Send a text message5",
-      "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
-      "credentials": {
-        "telegramApi": {
-          "id": "0zhvcThyI8IJoffe",
-          "name": "Telegram account"
-        }
-      }
-    },
-    {
-      "parameters": {
-        "conditions": {
-          "options": {
-            "caseSensitive": false,
-            "leftValue": "",
-            "typeValidation": "strict",
-            "version": 3
-          },
-          "conditions": [
-            {
               "id": "8cc2f473-ffad-496a-b1ea-50be76a01807",
               "leftValue": "={{ $('Webhook').item.json.body.nombre }}",
               "rightValue": "",
@@ -951,6 +381,16 @@
               }
             },
             {
+              "id": "e934b91b-bc8d-4d39-afa9-9ae68398f550",
+              "leftValue": "={{ $json.corre_min }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "empty",
+                "singleValue": true
+              }
+            },
+            {
               "id": "117f1e4e-e93a-4b36-92fc-6125225657ab",
               "leftValue": "={{ $json.corre_min }}",
               "rightValue": "@",
@@ -967,16 +407,6 @@
                 "type": "string",
                 "operation": "notContains"
               }
-            },
-            {
-              "id": "e934b91b-bc8d-4d39-afa9-9ae68398f550",
-              "leftValue": "={{ $json.corre_min }}",
-              "rightValue": "",
-              "operator": {
-                "type": "string",
-                "operation": "empty",
-                "singleValue": true
-              }
             }
           ],
           "combinator": "or"
@@ -989,7 +419,7 @@
       "typeVersion": 2.3,
       "position": [
         -128,
-        852
+        704
       ],
       "id": "4ac25e6b-06a5-47ce-9721-89203073a460",
       "name": "If2"
@@ -1004,7 +434,7 @@
       "typeVersion": 1.2,
       "position": [
         96,
-        756
+        608
       ],
       "id": "ef9304a9-f270-4e0d-a124-6782b595443d",
       "name": "Send a text message6",
@@ -1029,7 +459,7 @@
             {
               "id": "8da3d5c7-542e-409c-8744-fd27afeb5f6b",
               "leftValue": "={{ $('Extract from File').item.json.image }}",
-              "rightValue": "IVBOR",
+              "rightValue": "iVBOR",
               "operator": {
                 "type": "string",
                 "operation": "notStartsWith"
@@ -1062,7 +492,7 @@
       "typeVersion": 2.3,
       "position": [
         96,
-        948
+        800
       ],
       "id": "5560fbb9-f3e9-4f9b-8396-dd761f270904",
       "name": "If3"
@@ -1077,7 +507,7 @@
       "typeVersion": 1.2,
       "position": [
         384,
-        1096
+        748
       ],
       "id": "0415ade6-809e-47ef-a9e4-0bae7a7a35a3",
       "name": "Send a text message7",
@@ -1107,7 +537,7 @@
       "typeVersion": 3.4,
       "position": [
         -352,
-        852
+        704
       ],
       "id": "6e883731-6942-48f2-9dc7-6465e90bed01",
       "name": "Edit Fields"
@@ -1123,10 +553,580 @@
       "typeVersion": 1.1,
       "position": [
         -576,
-        852
+        704
       ],
       "id": "be285b4e-c9d3-484e-9288-6c13b5374954",
       "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "=You are a school teacher responsible for evaluating whether a student's absence justification is valid.\n\nYou will receive an image containing the justification (base64 file: {{ $json.image }}) and a text detailing the inasistence motive(text provided by student: {{ $('Webhook').item.json.body.textarea }}) and the type of justification the student is asking ({{ $('Webhook').item.json.body.motivo }})\n\nYour task is to:\n1. Analyze the justification shown in the image.\n2. Decide if it is valid or not based on common school standards (e.g., medical reasons, official documents, emergencies).\n3. give priority based on the text given by the student. For example: If the reason contains keywords such as: \"hospital\", \"emergency\", \"surgery\": HIGH priority\nIf it contains: \"doctor\", \"health\": MEDIUM priority\nOther cases → LOW priority\n4. based on the priority, take more into account the description given by the student than the image given, especially if it contains surgery\n\nYou must respond using ONLY one of the following statuses:\n- \"approved\" (valid justification)\n- \"rejected\" (invalid or insufficient justification)\n- \"pending\" (unclear or not enough information)\n\nAdditionally:\n- Provide a brief explanation of your decision.\n- Indicate how trustworthy your evaluation is (low, medium, high).\n\nFormat your response as:\nStatus: <approved/rejected/pending>\nExplanation: <short explanation>\nTrustworthiness: <low/medium/high>\nFinal Verdict: <one sentence conclusion>\nPriority: <high, medium, low>",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": []
+        },
+        "batching": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "position": [
+        320,
+        1044
+      ],
+      "id": "28058767-46c3-423c-885c-a6a140f17b32",
+      "name": "Basic LLM Chain",
+      "retryOnFail": false,
+      "waitBetweenTries": 5000,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-120b:free",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        328,
+        1268
+      ],
+      "id": "7e0890cb-42b9-4aa1-b076-d6392e5adb7a",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "UaYQM80yxUC5dGkU",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"Estatus\":\"aproved\",\n  \"Explanaition\":\"The image appears to contain a medical prescription or note, but it is not clearly legible or verifiable as an official school absence justification (e.g., lacks clear patient name, date, doctor’s signature, or school-required format).\",\n  \"Trustworthiness\":\"Medium\",\n  \"Final_veredict\":\"The justification cannot be clearly confirmed as valid or invalid without better readability and verification\",\n  \"Priority\":\"Hight\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        456,
+        1268
+      ],
+      "id": "a19483c5-6618-4bd2-be0d-e43f5ee696f6",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM",
+          "mode": "list",
+          "cachedResultName": "proyecto",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_solicitud": "={{ $json.id_solicitud +1}}",
+            "Nombre": "={{ $('Webhook').item.json.body.nombre }}",
+            "correo": "={{ $('Edit Fields').item.json.corre_min }}",
+            "Tipo justificación": "={{ $('Webhook').item.json.body.motivo }}",
+            "Documento": "={{ $('Webhook').item.json.body.id }}",
+            "Resultado del analizis": "={{ $('Basic LLM Chain').item.json.output.Final_veredict }}",
+            "Estado": "={{ $('Basic LLM Chain').item.json.output.Estatus }}",
+            "Nivel de cofianza": "={{ $('Basic LLM Chain').item.json.output.Trustworthiness }}",
+            "Analizis": "={{ $('Basic LLM Chain').item.json.output.Explanaition }}",
+            "Prioridad": "={{ $('Basic LLM Chain').item.json.output.Priority }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id_solicitud",
+              "displayName": "id_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Documento",
+              "displayName": "Documento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "correo",
+              "displayName": "correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tipo justificación",
+              "displayName": "Tipo justificación",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Analizis",
+              "displayName": "Analizis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Resultado del analizis",
+              "displayName": "Resultado del analizis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nivel de cofianza",
+              "displayName": "Nivel de cofianza",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Prioridad",
+              "displayName": "Prioridad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {
+          "locationDefine": {
+            "values": {
+              "headerRow": "="
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        948
+      ],
+      "id": "e69af023-2ee7-4067-a8ef-379072545a3a",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZgxYlaMEdOWcV2p0",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM",
+          "mode": "list",
+          "cachedResultName": "proyecto",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
+        },
+        "options": {
+          "returnFirstMatch": false
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        948
+      ],
+      "id": "07bccd70-efa2-4517-8ffa-c8661d9dca99",
+      "name": "Get row(s) in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZgxYlaMEdOWcV2p0",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items=  $input.all();\nconst last = items[ items.length -1]\n\nreturn last"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        948
+      ],
+      "id": "e8453ea9-bd77-49dd-9a8d-6d33146ff473",
+      "name": "Code in JavaScript"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM",
+          "mode": "list",
+          "cachedResultName": "proyecto",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": []
+        },
+        "options": {
+          "returnFirstMatch": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        672,
+        1140
+      ],
+      "id": "b2017153-c06a-45a3-9b30-e39c84fbb0c4",
+      "name": "Get row(s) in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZgxYlaMEdOWcV2p0",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const items=  $input.all();\nconst last = items[ items.length -1]\n\nreturn last"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        1140
+      ],
+      "id": "66f79b88-457f-444a-8aac-af5e30b53d1b",
+      "name": "Code in JavaScript1"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM",
+          "mode": "list",
+          "cachedResultName": "proyecto",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1ez2GoQdzKL5hrRNKEhoRiOh_7rtOO7kQXsJ2Rjq0tNM/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_solicitud": "={{ $json.id_solicitud +1}}",
+            "Nombre": "={{ $('Webhook').item.json.body.nombre }}",
+            "correo": "={{ $('Edit Fields').item.json.corre_min }}",
+            "Tipo justificación": "={{ $('Webhook').item.json.body.motivo }}",
+            "Documento": "={{ $('Webhook').item.json.body.id }}",
+            "Resultado del analizis": "=datos insufientes",
+            "Estado": "=Pending",
+            "Nivel de cofianza": "=bajo",
+            "Analizis": "=No hay datos sufientes para realizar una analizis. Se requiere revicion de un humano"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "id_solicitud",
+              "displayName": "id_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nombre",
+              "displayName": "Nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Documento",
+              "displayName": "Documento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "correo",
+              "displayName": "correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Tipo justificación",
+              "displayName": "Tipo justificación",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Analizis",
+              "displayName": "Analizis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "Resultado del analizis",
+              "displayName": "Resultado del analizis",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Nivel de cofianza",
+              "displayName": "Nivel de cofianza",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "Estado",
+              "displayName": "Estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        1140
+      ],
+      "id": "e8683d86-e37a-4c9f-82da-de506f4ddd93",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "ZgxYlaMEdOWcV2p0",
+          "name": "Google Sheets OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": false,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ef63ed18-8c75-45ab-8ba5-0328d12f4792",
+              "leftValue": "={{ $json.output.Priority }}",
+              "rightValue": "High",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {
+          "ignoreCase": true
+        }
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        756
+      ],
+      "id": "850173c1-e3cc-4122-80b1-1f9d87df5bf6",
+      "name": "If1"
+    },
+    {
+      "parameters": {
+        "chatId": "=8725657773",
+        "text": "=Hey! a higth priority justification was made by {{ $('Webhook').item.json.body.nombre }} identified with ID {{ $('Webhook').item.json.body.id }} and with the email {{ $('Webhook').item.json.body.correo }}.\nPlease take care of him/her!\nTetto retires!",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        896,
+        756
+      ],
+      "id": "5dcba2f3-8784-44ff-9d2e-72358b954b89",
+      "name": "Send a text message4",
+      "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
+      "credentials": {
+        "telegramApi": {
+          "id": "0zhvcThyI8IJoffe",
+          "name": "Telegram account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Edit Fields').item.json.corre_min }}",
+        "subject": "absence justification",
+        "emailType": "text",
+        "message": "=Your absence justification was reviewed by our IA agent Tetto, here is the result:\n{{ $json.Estado }}\n- {{ $json['Resultado del analizis'] }}\n\n- {{ $json.Analizis }}\n",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        948
+      ],
+      "id": "31dc9bf9-6388-45ca-ae4c-c8dbe2c98361",
+      "name": "Send a message",
+      "webhookId": "74d674d9-9ba9-41d7-b685-89532fa31fd1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ULtJGUuL3R7cll8i",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Edit Fields').item.json.corre_min }}",
+        "subject": "absence justification",
+        "emailType": "text",
+        "message": "=Your absence justification was reviewed by our IA agent Tetto but she wasn't able to determinate wheter or not it was valid, a teacher is going to review it and in 24-hours it will be validated. Note that if it stills pendig in 24 hours your absence will be automatly chaged to aproved",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1344,
+        1140
+      ],
+      "id": "87e707fb-d8c1-41da-a585-affd34d7b249",
+      "name": "Send a message1",
+      "webhookId": "74d674d9-9ba9-41d7-b685-89532fa31fd1",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "ULtJGUuL3R7cll8i",
+          "name": "Gmail OAuth2 API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "chatId": "=8725657773",
+        "text": "=Humm... I was not able to say if it was valid, you should review it by yoursefl!\nThe id of the request is {{ $('Append row in sheet1').item.json.id_solicitud }}\nThank you for helping me!\nTetto retires",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.telegram",
+      "typeVersion": 1.2,
+      "position": [
+        1568,
+        1140
+      ],
+      "id": "8b06582c-608b-4dee-8d2f-eb187fd1e066",
+      "name": "Send a text message5",
+      "webhookId": "83acf0c2-a268-4a97-b763-749a2e5ca992",
+      "credentials": {
+        "telegramApi": {
+          "id": "0zhvcThyI8IJoffe",
+          "name": "Telegram account"
+        }
+      }
     }
   ],
   "pinData": {},
@@ -1142,100 +1142,11 @@
         ]
       ]
     },
-    "Basic LLM Chain": {
-      "main": [
-        [
-          {
-            "node": "Get row(s) in sheet",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "If1",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Get row(s) in sheet1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "OpenRouter Chat Model": {
-      "ai_languageModel": [
-        [
-          {
-            "node": "Basic LLM Chain",
-            "type": "ai_languageModel",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Structured Output Parser": {
-      "ai_outputParser": [
-        [
-          {
-            "node": "Basic LLM Chain",
-            "type": "ai_outputParser",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get row(s) in sheet": {
-      "main": [
-        [
-          {
-            "node": "Code in JavaScript",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code in JavaScript": {
-      "main": [
-        [
-          {
-            "node": "Append row in sheet",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
     "Telegram Trigger": {
       "main": [
         [
           {
             "node": "Switch",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Get row(s) in sheet1": {
-      "main": [
-        [
-          {
-            "node": "Code in JavaScript1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Code in JavaScript1": {
-      "main": [
-        [
-          {
-            "node": "Append row in sheet1",
             "type": "main",
             "index": 0
           }
@@ -1310,55 +1221,6 @@
         ]
       ]
     },
-    "If1": {
-      "main": [
-        [
-          {
-            "node": "Send a text message4",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Append row in sheet": {
-      "main": [
-        [
-          {
-            "node": "Send a message",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Append row in sheet1": {
-      "main": [
-        [
-          {
-            "node": "Send a message1",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send a message1": {
-      "main": [
-        [
-          {
-            "node": "Send a text message5",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Send a message": {
-      "main": [
-        []
-      ]
-    },
     "If2": {
       "main": [
         [
@@ -1381,14 +1243,14 @@
       "main": [
         [
           {
-            "node": "Basic LLM Chain",
+            "node": "Send a text message7",
             "type": "main",
             "index": 0
           }
         ],
         [
           {
-            "node": "Send a text message7",
+            "node": "Basic LLM Chain",
             "type": "main",
             "index": 0
           }
@@ -1416,6 +1278,139 @@
           }
         ]
       ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "If1",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Get row(s) in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        [
+          {
+            "node": "Send a message",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Code in JavaScript1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Code in JavaScript1": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet1": {
+      "main": [
+        [
+          {
+            "node": "Send a message1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message4",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send a message1": {
+      "main": [
+        [
+          {
+            "node": "Send a text message5",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
     }
   },
   "active": true,
@@ -1423,7 +1418,7 @@
     "executionOrder": "v1",
     "binaryMode": "separate"
   },
-  "versionId": "b179f77c-7f1f-443b-94e9-4d0b396f0839",
+  "versionId": "bb9800b8-29f8-411d-892f-fedd4a04d269",
   "meta": {
     "templateCredsSetupCompleted": true,
     "instanceId": "b34109869cf9401e1ba7fbc11da3b94470712daa9d333c905c95b8f807a25c72"
